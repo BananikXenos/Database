@@ -6,7 +6,7 @@ Simple Gson based database library
 
 ## Usage/Examples
 
-For example see [this](src/example/)
+For example see [this](src/main/java/example/)
 
 
 ## Features
