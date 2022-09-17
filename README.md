@@ -1,7 +1,6 @@
 # Database
 
-Simple [hashcode](https://www.baeldung.com/java-hashcode) & [gson](https://github.com/google/gson) based database
-library, with [encryption](https://en.wikipedia.org/wiki/Encryption) and exception handling.
+Simple database library, with [encryption](https://en.wikipedia.org/wiki/Encryption), [serialization](https://en.wikipedia.org/wiki/Serialization) and exception handling.
 
 ## Roadmap
 
