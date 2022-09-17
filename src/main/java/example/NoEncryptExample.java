@@ -1,47 +1,41 @@
 package example;
 
 import xyz.synse.database.Database;
+import xyz.synse.database.DatabaseBuilder;
 
 import java.io.File;
-import java.util.UUID;
+import java.util.Random;
 
 public class NoEncryptExample {
-    public static void main(String[] args) {
-        Database<UUID, String> database = new Database<>(new File("database.db"));
-        database.load();
+    public static void main(String[] args) throws InterruptedException {
+        // Create the database directory
+        new File("database").mkdirs();
+        // Create the Database with DatabaseBuilder
+        Database<String, String> database = new DatabaseBuilder<String, String>("database")
+                .cacheKeepTime(3_000L)
+                .autoSave()
+                .build();
 
-        for(int i = 0; i < 10; i++) {
-            database.set(UUID.randomUUID(), getAlphaNumericString(20));
-        }
+        // Set some values
+        database.set("John", (int)(new Random().nextDouble() * 100D) + " Dollars");
+        database.set("Eva", (int)(new Random().nextDouble() * 100D) + " Dollars");
+        database.set("Bob", (int)(new Random().nextDouble() * 100D) + " Dollars");
 
+        Thread.sleep(4_000L);
+
+        // Clears cached values that are in memory longer than 3000 millis
+        database.clearCache();
+
+        Thread.sleep(1_000L);
+
+        System.out.println(database.get("John"));
+        System.out.println(database.get("Eva"));
+        System.out.println(database.get("Bob"));
+
+        // Not existing value
+        System.out.println(database.getOrElse("Mark", "Alternative"));
+
+        // Save the database and clear cache
         database.close();
-    }
-
-    // From https://www.geeksforgeeks.org/generate-random-string-of-given-size-in-java/
-    static String getAlphaNumericString(int n)
-    {
-
-        // chose a Character random from this String
-        String AlphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                + "0123456789"
-                + "abcdefghijklmnopqrstuvxyz";
-
-        // create StringBuffer size of AlphaNumericString
-        StringBuilder sb = new StringBuilder(n);
-
-        for (int i = 0; i < n; i++) {
-
-            // generate a random number between
-            // 0 to AlphaNumericString variable length
-            int index
-                    = (int)(AlphaNumericString.length()
-                    * Math.random());
-
-            // add Character one by one in end of sb
-            sb.append(AlphaNumericString
-                    .charAt(index));
-        }
-
-        return sb.toString();
     }
 }
