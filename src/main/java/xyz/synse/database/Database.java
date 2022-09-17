@@ -1,34 +1,37 @@
 package xyz.synse.database;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import xyz.synse.database.encryption.IEncryption;
 import xyz.synse.database.exceptions.DatabaseLoadException;
 import xyz.synse.database.exceptions.DatabaseSaveException;
+import xyz.synse.database.serialization.ISerialization;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Database<K, V> {
+public class Database {
     private final File databaseFolder;
     private final long cacheKeepTime;
     private final IEncryption encryption;
-    private final HashMap<K, CachedValue> cachedValues = new HashMap<>();
+    private final ISerialization serialization;
+    private final HashMap<Object, CachedValue> cachedValues = new HashMap<>();
     private final boolean autoSave;
     private final boolean throwRuntimeExceptions;
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public Database(File databaseFolder, IEncryption encryption, long cacheKeepTime, boolean autoSave, boolean throwRuntimeExceptions) {
+    public Database(File databaseFolder, IEncryption encryption, long cacheKeepTime, ISerialization serialization, boolean autoSave, boolean throwRuntimeExceptions) {
         this.databaseFolder = databaseFolder;
         this.encryption = encryption;
         this.cacheKeepTime = cacheKeepTime;
+        this.serialization = serialization;
         this.autoSave = autoSave;
         this.throwRuntimeExceptions = throwRuntimeExceptions;
     }
 
-    public void set(K key, V value) {
+    public void set(Object key, Object value) {
         if(cachedValues.containsKey(key))
             this.cachedValues.replace(key, new CachedValue(value));
         else
@@ -37,15 +40,15 @@ public class Database<K, V> {
         if(autoSave) {
             try {
                 save();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.err.printf("[Database] Error saving value %s with key %s during auto-save", value, key);
                 if(throwRuntimeExceptions)
-                    throw new DatabaseSaveException("Failed to save database during auto-save", e);
+                    throw new DatabaseSaveException("[Database] Failed to save database during auto-save", e);
             }
         }
     }
 
-    public V get(K key){
+    public Object get(Object key) {
         // Load from cache
         if(cachedValues.containsKey(key))
             return cachedValues.get(key).value;
@@ -57,19 +60,23 @@ public class Database<K, V> {
         if(!file.exists())
             return null;
 
-        return (V) gson.fromJson(encryption.decrypt(readToString(file)), Object.class);
+        try {
+            return serialization.deserialize(encryption.decrypt(readToString(file)));
+        } catch (Exception e) {
+            throw new DatabaseLoadException("[Database] Failed to load value", e);
+        }
     }
 
-    public V getOrElse(K key, V defaultValue){
+    public Object getOrElse(Object key, Object defaultValue){
         try {
-            V loaded = get(key);
+            Object loaded = get(key);
 
             if (loaded != null)
                 return loaded;
-        }catch (DatabaseLoadException e){
+        }catch (Exception e){
             System.err.printf("[Database] Error loading value with key %s. Returning default value %s", key, defaultValue);
             if(throwRuntimeExceptions)
-                throw e;
+                throw new DatabaseLoadException("[Database] Error loading value", e);
         }
 
         return defaultValue;
@@ -80,9 +87,9 @@ public class Database<K, V> {
         cachedValues.entrySet().removeIf(entry -> (System.currentTimeMillis() - entry.getValue().addDate) > cacheKeepTime && entry.getValue().isSaved);
     }
 
-    public void save() throws IOException {
+    public void save() throws Exception {
         // Loop
-        for(Map.Entry<K, CachedValue> cachedValue : cachedValues.entrySet()){
+        for(Map.Entry<Object, CachedValue> cachedValue : cachedValues.entrySet()){
             // File
             int hash = cachedValue.getKey().hashCode();
             File file = new File(databaseFolder, hash + "" + cachedValue.getKey().getClass().getName() + ".dat");
@@ -93,7 +100,7 @@ public class Database<K, V> {
 
             // Write
             FileWriter fileWriter = new FileWriter(file, false);
-            fileWriter.write(encryption.encrypt(gson.toJson(cachedValue.getValue().value)));
+            fileWriter.write(encryption.encrypt(serialization.serialize(cachedValue.getValue().value)));
             fileWriter.flush();
             fileWriter.close();
 
@@ -104,10 +111,10 @@ public class Database<K, V> {
     public void close(){
         try {
             save();
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.print("[Database] Error closing database");
             if(throwRuntimeExceptions)
-                throw new DatabaseSaveException("Failed to save database during close", e);
+                throw new DatabaseSaveException("[Database] Failed to save database during close", e);
         }
 
         cachedValues.clear();
@@ -116,22 +123,22 @@ public class Database<K, V> {
     private String readToString(File file) {
         try {
             byte[] bytes = Files.readAllBytes(file.toPath());
-            return new String(bytes);
+            return new String(bytes, StandardCharsets.UTF_8);
         } catch (IOException e) {
             System.err.print("[Database] Error reading value from file");
             if(throwRuntimeExceptions)
-                throw new DatabaseLoadException("Failed to read value from file", e);
+                throw new DatabaseLoadException("[Database] Failed to read value from file", e);
         }
 
         return null;
     }
 
-    class CachedValue {
-        private final V value;
+    static class CachedValue {
+        private final Object value;
         private boolean isSaved = false;
         private final long addDate = System.currentTimeMillis();
 
-        CachedValue(V value) {
+        CachedValue(Object value) {
             this.value = value;
         }
     }
