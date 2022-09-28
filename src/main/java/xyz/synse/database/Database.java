@@ -90,6 +90,9 @@ public class Database {
     public void save() throws Exception {
         // Loop
         for(Map.Entry<Object, CachedValue> cachedValue : cachedValues.entrySet()){
+            if(cachedValue.getValue().isSaved)
+                continue;
+
             // File
             int hash = cachedValue.getKey().hashCode();
             File file = new File(databaseFolder, hash + "" + cachedValue.getKey().getClass().getName() + ".dat");
