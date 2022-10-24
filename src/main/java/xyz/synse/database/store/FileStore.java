@@ -9,30 +9,31 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class FileStore extends Store {
+    private final File dbFile;
     private final ISerialization serialization;
     private final IEncryption encryption;
     private static final String keyValueCharacters = " :=; ";
 
     public FileStore(File dbFile, ISerialization serialization, IEncryption encryption) {
-        super(dbFile);
+        this.dbFile = dbFile;
         this.serialization = serialization;
         this.encryption = encryption;
     }
 
     public FileStore(String dbFile, ISerialization serialization, IEncryption encryption) {
-        super(new File(dbFile));
+        this.dbFile = new File(dbFile);
         this.serialization = serialization;
         this.encryption = encryption;
     }
 
     public FileStore(File dbFile, ISerialization serialization) {
-        super(dbFile);
+        this.dbFile = dbFile;
         this.serialization = serialization;
         this.encryption = new NoEncryption();
     }
 
     public FileStore(String dbFile, ISerialization serialization) {
-        super(new File(dbFile));
+        this.dbFile = new File(dbFile);
         this.serialization = serialization;
         this.encryption = new NoEncryption();
     }

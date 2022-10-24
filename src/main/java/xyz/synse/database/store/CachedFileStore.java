@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class CachedFileStore extends Store {
+    private final File dbFile;
     private final HashMap<String, CachedValue> cachedValues = new HashMap<>();
 
     private final ISerialization serialization;
@@ -18,25 +19,25 @@ public class CachedFileStore extends Store {
     private static final String keyValueCharacters = " :=; ";
 
     public CachedFileStore(File dbFile, ISerialization serialization, IEncryption encryption) {
-        super(dbFile);
+        this.dbFile = dbFile;
         this.serialization = serialization;
         this.encryption = encryption;
     }
 
     public CachedFileStore(String dbFile, ISerialization serialization, IEncryption encryption) {
-        super(new File(dbFile));
+        this.dbFile = new File(dbFile);
         this.serialization = serialization;
         this.encryption = encryption;
     }
 
     public CachedFileStore(File dbFile, ISerialization serialization) {
-        super(dbFile);
+        this.dbFile = dbFile;
         this.serialization = serialization;
         this.encryption = new NoEncryption();
     }
 
     public CachedFileStore(String dbFile, ISerialization serialization) {
-        super(new File(dbFile));
+        this.dbFile = new File(dbFile);
         this.serialization = serialization;
         this.encryption = new NoEncryption();
     }

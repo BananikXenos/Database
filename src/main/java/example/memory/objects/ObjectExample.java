@@ -1,16 +1,14 @@
-package example.cached.objects;
+package example.memory.objects;
 
 import example.User;
 import xyz.synse.database.Database;
-import xyz.synse.database.encryption.NoEncryption;
-import xyz.synse.database.serialization.JavaSerialization;
-import xyz.synse.database.store.CachedFileStore;
+import xyz.synse.database.store.MemoryStore;
 
 import java.util.Random;
 
-public class NoEncryptObjectExample {
+public class ObjectExample {
     public static void main(String[] args) throws InterruptedException {
-        Database database = new Database(new CachedFileStore("database.dat", new JavaSerialization(), new NoEncryption()));
+        Database database = new Database(new MemoryStore());
 
         // Set some values
         database.set("John", new User((int)(new Random().nextDouble() * 100D), "€"));

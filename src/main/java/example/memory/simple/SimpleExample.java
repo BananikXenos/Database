@@ -1,15 +1,13 @@
-package example.notcached.simple;
+package example.memory.simple;
 
 import xyz.synse.database.Database;
-import xyz.synse.database.encryption.NoEncryption;
-import xyz.synse.database.serialization.JavaSerialization;
-import xyz.synse.database.store.FileStore;
+import xyz.synse.database.store.MemoryStore;
 
 import java.util.Random;
 
-public class NoEncryptExample {
+public class SimpleExample {
     public static void main(String[] args) throws InterruptedException {
-        Database database = new Database(new FileStore("database.dat", new JavaSerialization(), new NoEncryption()));
+        Database database = new Database(new MemoryStore());
 
         // Load old values if there are any
         System.out.println(database.get("John"));
