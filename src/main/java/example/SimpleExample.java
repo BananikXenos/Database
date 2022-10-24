@@ -1,36 +1,3 @@
-# Database
-
-Simple file or in memory database library, with [encryption](https://en.wikipedia.org/wiki/Encryption), [serialization](https://en.wikipedia.org/wiki/Serialization).
-
-## Roadmap
-
-- More features
-- Wrong encryption detection
-
-## Features
-
-- Optional Encryption - for custom use IEncryption
-- Serialization - for custom use ISerialization
-- Multiple Database Stores
-- Default value with Database#getOrElse(key, defaultValue);
-- Set value if missing with Database#getOrSet(key, defaultValue);
-- Database builder 
-
-## Stores
-- Memory Store
-- File Store
-- Cached File Store
-- For custom one use IStore
-
-## Donate
-
-- [PayPal](https://www.paypal.com/paypalme/scgxenos) Donate would be cool :)
-
-## Usage/Examples
-
-Simple usage of encrypted Database that keeps cached values for 3 seconds and auto-saves after modifying value
-
-```java
 package example;
 
 import xyz.synse.database.core.base.Database;
@@ -71,13 +38,3 @@ public class SimpleExample {
         database.close();
     }
 }
-```
-
-## Authors
-
-- [BananikXenos](https://github.com/BananikXenos)
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
-
