@@ -1,22 +1,16 @@
-package example.objects;
+package example.cached.objects;
 
+import example.User;
 import xyz.synse.database.Database;
-import xyz.synse.database.DatabaseBuilder;
 import xyz.synse.database.encryption.SimpleEncryption;
+import xyz.synse.database.serialization.JavaSerialization;
+import xyz.synse.database.store.CachedFileStore;
 
-import java.io.File;
 import java.util.Random;
 
 public class SimpleEncryptObjectExample {
     public static void main(String[] args) throws InterruptedException {
-        // Create the database directory
-        new File("database").mkdirs();
-        // Create the Database with DatabaseBuilder
-        Database database = new DatabaseBuilder("database")
-                .withEncryption(new SimpleEncryption("xU711Td8uL3D3O67!p$K7$5nLlea#kVZ"))
-                .cacheKeepTime(3_000L)
-                .autoSave()
-                .build();
+        Database database = new Database(new CachedFileStore("database.dat", new JavaSerialization(), new SimpleEncryption("xU711Td8uL3D3O67!p$K7$5nLlea#kVZ")));
 
         // Set some values
         database.set("John", new User((int)(new Random().nextDouble() * 100D), "€"));
@@ -26,7 +20,7 @@ public class SimpleEncryptObjectExample {
         Thread.sleep(4_000L);
 
         // Clears cached values that are in memory longer than 3000 millis
-        database.clearCache();
+        database.save();
 
         Thread.sleep(1_000L);
 

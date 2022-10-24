@@ -1,4 +1,4 @@
-package example.objects;
+package example;
 
 import java.io.Serializable;
 

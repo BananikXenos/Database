@@ -1,24 +1,15 @@
-package example.serialization;
+package example.notcached.serialization;
 
 import xyz.synse.database.Database;
-import xyz.synse.database.DatabaseBuilder;
 import xyz.synse.database.encryption.SimpleEncryption;
 import xyz.synse.database.serialization.AzraelSerialization;
+import xyz.synse.database.store.FileStore;
 
-import java.io.File;
 import java.util.Random;
 
 public class AzraelSerializationExample {
     public static void main(String[] args) throws InterruptedException {
-        // Create the database directory
-        new File("database").mkdirs();
-        // Create the Database with DatabaseBuilder
-        Database database = new DatabaseBuilder("database")
-                .cacheKeepTime(3_000L)
-                .withEncryption(new SimpleEncryption("xU711Td8uL3D3O67"))
-                .withSerialization(new AzraelSerialization())
-                .autoSave()
-                .build();
+        Database database = new Database(new FileStore("database.dat", new AzraelSerialization(), new SimpleEncryption("xU711Td8uL3D3O67!p$K7$5nLlea#kVZ")));
 
         // Load old values if there are any
         System.out.println(database.get("John"));
@@ -33,7 +24,7 @@ public class AzraelSerializationExample {
         Thread.sleep(4_000L);
 
         // Clears cached values that are in memory longer than 3000 millis
-        database.clearCache();
+        database.save();
 
         Thread.sleep(1_000L);
 
