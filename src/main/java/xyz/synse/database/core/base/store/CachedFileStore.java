@@ -43,9 +43,39 @@ public class CachedFileStore implements IStore {
         this.encryption = new NoEncryption();
     }
 
+    public static void progressPercentage(int done, int total) {
+        int size = 50;
+        String iconLeftBoundary = "[";
+        String iconDone = "#";
+        String iconRemain = "-";
+        String iconRightBoundary = "]";
+
+        if (done > total) {
+            throw new IllegalArgumentException();
+        }
+        int donePercents = (100 * done) / total;
+        int doneLength = size * donePercents / 100;
+
+        StringBuilder bar = new StringBuilder(iconLeftBoundary);
+        for (int i = 0; i < size; i++) {
+            if (i < doneLength) {
+                bar.append(iconDone);
+            } else {
+                bar.append(iconRemain);
+            }
+        }
+        bar.append(iconRightBoundary);
+
+        System.out.print("\r" + bar + " " + donePercents + "%");
+
+        if (done == total) {
+            System.out.print("\n");
+        }
+    }
+
     @Override
     public Object get(String key) {
-        if(cachedValues.containsKey(key))
+        if (cachedValues.containsKey(key))
             return cachedValues.get(key).value;
 
         if (!dbFile.exists())
@@ -74,17 +104,20 @@ public class CachedFileStore implements IStore {
     @Override
     public void set(String key, Object object) {
         try {
-            if(cachedValues.containsKey(key)){
+            if (cachedValues.containsKey(key)) {
                 CachedValue cV = cachedValues.get(key);
                 cV.value = object;
                 cV.isSaved = true;
+            } else {
+                cachedValues.put(key, new CachedValue(object));
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    public void saveToFile(String key, Object object) {
+    @Override
+    public void saveAll() {
         try {
             if (!dbFile.exists())
                 dbFile.createNewFile();
@@ -92,16 +125,23 @@ public class CachedFileStore implements IStore {
             FileReader fr = new FileReader(dbFile);
             BufferedReader br = new BufferedReader(fr);
 
+            int progress = 0;
+
+            ArrayList<String> added = new ArrayList<>();
             ArrayList<String> lines = new ArrayList<>();
-            boolean hasOld = false;
             for (String line; (line = br.readLine()) != null; ) {
                 String[] vLine = line.split(Constant.KEY_VALUE_CHARACTERS);
                 String vKey = vLine[0];
 
-                if (Objects.equals(vKey, key)) {
-                    String serialized = encryption.encrypt(serialization.serialize(object));
-                    line = vKey + Constant.KEY_VALUE_CHARACTERS + serialized;
-                    hasOld = true;
+                for (Map.Entry<String, CachedValue> entry : cachedValues.entrySet()) {
+                    if (Objects.equals(vKey, entry.getKey())) {
+                        String serialized = encryption.encrypt(serialization.serialize(entry.getValue().value));
+                        line = vKey + Constant.KEY_VALUE_CHARACTERS + serialized;
+                        added.add(entry.getKey());
+
+                        progressPercentage(progress++, cachedValues.size() - 1);
+                        break;
+                    }
                 }
 
                 lines.add(line);
@@ -109,9 +149,13 @@ public class CachedFileStore implements IStore {
             fr.close();
             br.close();
 
-            if(!hasOld){
-                String serialized = encryption.encrypt(serialization.serialize(object));
-                lines.add(key + Constant.KEY_VALUE_CHARACTERS + serialized);
+            for (Map.Entry<String, CachedValue> entry : cachedValues.entrySet()) {
+                if (!added.contains(entry.getKey())) {
+                    String serialized = encryption.encrypt(serialization.serialize(entry.getValue().value));
+                    lines.add(entry.getKey() + Constant.KEY_VALUE_CHARACTERS + serialized);
+
+                    progressPercentage(progress++, cachedValues.size() - 1);
+                }
             }
 
             FileWriter fw = new FileWriter(dbFile);
@@ -121,14 +165,7 @@ public class CachedFileStore implements IStore {
             out.flush();
             out.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    @Override
-    public void saveAll() {
-        for(Map.Entry<String, CachedValue> entry : cachedValues.entrySet()){
-            saveToFile(entry.getKey(), entry.getValue().value);
+            throw new RuntimeException(ex);
         }
     }
 

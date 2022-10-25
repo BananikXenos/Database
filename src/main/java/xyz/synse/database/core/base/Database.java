@@ -51,7 +51,6 @@ public class Database {
     }
 
     public void close() {
-        save();
         store.close();
     }
 }
