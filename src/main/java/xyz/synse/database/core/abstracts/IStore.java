@@ -1,8 +1,8 @@
 package xyz.synse.database.core.abstracts;
 
 public interface IStore {
-    Object read(String key);
-    void save(String key, Object object);
+    Object get(String key);
+    void set(String key, Object object);
 
     void saveAll();
     void clearAll();

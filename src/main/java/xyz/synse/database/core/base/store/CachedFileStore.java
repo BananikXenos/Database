@@ -44,7 +44,7 @@ public class CachedFileStore implements IStore {
     }
 
     @Override
-    public Object read(String key) {
+    public Object get(String key) {
         if(cachedValues.containsKey(key))
             return cachedValues.get(key).value;
 
@@ -72,7 +72,19 @@ public class CachedFileStore implements IStore {
     }
 
     @Override
-    public void save(String key, Object object) {
+    public void set(String key, Object object) {
+        try {
+            if(cachedValues.containsKey(key)){
+                CachedValue cV = cachedValues.get(key);
+                cV.value = object;
+                cV.isSaved = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void saveToFile(String key, Object object) {
         try {
             if (!dbFile.exists())
                 dbFile.createNewFile();
@@ -108,12 +120,6 @@ public class CachedFileStore implements IStore {
                 out.write(s + "\n");
             out.flush();
             out.close();
-
-            if(cachedValues.containsKey(key)){
-                CachedValue cV = cachedValues.get(key);
-                cV.value = object;
-                cV.isSaved = true;
-            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -122,10 +128,8 @@ public class CachedFileStore implements IStore {
     @Override
     public void saveAll() {
         for(Map.Entry<String, CachedValue> entry : cachedValues.entrySet()){
-            save(entry.getKey(), entry.getValue().value);
+            saveToFile(entry.getKey(), entry.getValue().value);
         }
-
-        clearAll();
     }
 
     @Override
@@ -136,7 +140,7 @@ public class CachedFileStore implements IStore {
     @Override
     public void close() {
         saveAll();
-        cachedValues.clear();
+        clearAll();
     }
 
     static class CachedValue {

@@ -11,7 +11,7 @@ public class Database {
     }
 
     public Object set(Object key, Object value) {
-        store.save(Constant.computeKey(key), value);
+        store.set(Constant.computeKey(key), value);
 
         return value;
     }
@@ -21,7 +21,7 @@ public class Database {
     }
 
     public Object get(Object key) {
-        return store.read(Constant.computeKey(key));
+        return store.get(Constant.computeKey(key));
     }
 
     public Object getOrElse(Object key, Object defaultValue) {

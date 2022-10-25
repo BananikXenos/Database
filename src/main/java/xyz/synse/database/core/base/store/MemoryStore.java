@@ -8,12 +8,12 @@ public class MemoryStore implements IStore {
     private final HashMap<String, Object> values = new HashMap<>();
 
     @Override
-    public Object read(String key) {
+    public Object get(String key) {
         return values.get(key);
     }
 
     @Override
-    public void save(String key, Object object) {
+    public void set(String key, Object object) {
         if(values.containsKey(key))
             values.replace(key, object);
         else

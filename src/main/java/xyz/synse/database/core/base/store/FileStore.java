@@ -40,7 +40,7 @@ public class FileStore implements IStore {
     }
 
     @Override
-    public Object read(String key) {
+    public Object get(String key) {
         if (!dbFile.exists())
             return null;
 
@@ -62,7 +62,7 @@ public class FileStore implements IStore {
     }
 
     @Override
-    public void save(String key, Object object) {
+    public void set(String key, Object object) {
         try {
             if (!dbFile.exists())
                 dbFile.createNewFile();
