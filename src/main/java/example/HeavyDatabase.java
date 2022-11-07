@@ -14,8 +14,8 @@ public class HeavyDatabase {
         int count = 10_000;
         // Set some values
         for(int i = 0; i < count; i++){
-            String str1 = getAlphaNumericString(10);
-            String str2 = getAlphaNumericString(100);
+            String str1 = getAlphaNumericString(1);
+            String str2 = getAlphaNumericString(10);
             database.set(str1, str2);
         }
 
